@@ -22,9 +22,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // N.B. (rand() % N) isn't the greatest technique
-
-    srand(time(NULL));
+    srand(time(NULL)); // N.B. (rand() % N) isn't the greatest technique
 
     size_t num = 0;
     while (num < NUM_CHARS) {
@@ -37,7 +35,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    fprintf(fp, "\n"); // NUM_CHARS + 1
+    fprintf(fp, "\n");
     fclose(fp);
 
     return 0;

@@ -17,7 +17,6 @@
 /* util */
 
 bool is_number(char c) { return (c >= ASCII_0 && c <= ASCII_9); }
-
 bool is_letter(char c) { return (c >= ASCII_A && c <= ASCII_Z); }
 
 /* encode */
@@ -62,6 +61,7 @@ void close_and_exit(FILE *fin, FILE *fout, char *s)
     fclose(fout);
 
     printf("%s\n", s);
+
     exit(1);
 }
 
@@ -100,7 +100,7 @@ void rl_decode(FILE *fin, FILE *fout)
     }
 
     if (is_number(last)) {
-        close_and_exit(fin, fout, "malformed input file ends with digit");
+        close_and_exit(fin, fout, "malformed input file ends with number");
     }
 
     fprintf(fout, "\n");
