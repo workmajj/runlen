@@ -17,6 +17,7 @@
 /* util */
 
 bool is_number(char c) { return (c >= ASCII_0 && c <= ASCII_9); }
+
 bool is_letter(char c) { return (c >= ASCII_A && c <= ASCII_Z); }
 
 /* encode */
@@ -50,7 +51,6 @@ void rl_encode(FILE *fin, FILE *fout)
         if (count == 1) fprintf(fout, "%c\n", last);
         else fprintf(fout, "%zu%c\n", count, last);
     }
-
 }
 
 /* decode */
@@ -89,7 +89,7 @@ void rl_decode(FILE *fin, FILE *fout)
         }
         else {
             if (buf_idx + 1 == BUF_SIZE) {
-                close_and_exit(fin, fout, "multiplier exceeds buffer size");
+                close_and_exit(fin, fout, "multiplier exceeds buffer");
             }
 
             buf[buf_idx] = curr;
@@ -100,7 +100,7 @@ void rl_decode(FILE *fin, FILE *fout)
     }
 
     if (is_number(last)) {
-        close_and_exit(fin, fout, "malformed input file ends with number");
+        close_and_exit(fin, fout, "malformed input ends with number");
     }
 
     fprintf(fout, "\n");

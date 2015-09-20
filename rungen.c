@@ -22,16 +22,18 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    srand(time(NULL)); // N.B. (rand() % N) isn't the greatest technique
+    // N.B. (rand() % N) isn't great (non-uniform distribution)
+
+    srand(time(NULL));
 
     size_t num = 0;
+
     while (num < NUM_CHARS) {
         char c = ASCII_A + (rand() % (ASCII_Z - ASCII_A + 1));
         size_t run_len = 1 + (rand() % RUN_MAX);
 
-        for (size_t i = 0; num < NUM_CHARS && i < run_len; i++) {
+        for (size_t i = 0; i < run_len && num < NUM_CHARS; i++, num++) {
             fprintf(fp, "%c", c);
-            num++;
         }
     }
 
