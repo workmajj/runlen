@@ -28,9 +28,9 @@ void encode(FILE *fin, FILE *fout)
         if (!isupper(curr)) continue;
 
         if (count > 0 && curr != last) {
-            if (count == 1) fputc(last, fout);
-            else fprintf(fout, "%d%c", count, last);
+            if (count > 1) fprintf(fout, "%d", count);
 
+            fputc(last, fout);
             count = 1;
         }
         else {
@@ -41,9 +41,9 @@ void encode(FILE *fin, FILE *fout)
     }
 
     if (count > 0) {
-        if (count == 1) fputc(last, fout);
-        else fprintf(fout, "%d%c", count, last);
+        if (count > 1) fprintf(fout, "%d", count);
 
+        fputc(last, fout);
         fputc('\n', fout);
     }
 }
@@ -65,7 +65,9 @@ void decode(FILE *fin, FILE *fout)
             fputc(curr, fout);
         }
         else if (isupper(curr) && isdigit(last)) {
-            for (int i = 0; i < strtol(buf, NULL, 10); i++) fputc(curr, fout);
+            for (int i = 0; i < strtol(buf, NULL, 10); i++) {
+                fputc(curr, fout);
+            }
 
             memset(&buf, 0, BUF_SIZE);
             buf_idx = 0;
@@ -119,9 +121,15 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    if (f_encode) encode(fin, fout);
-    else if (f_decode) decode(fin, fout);
-    else assert(0 && "not reached");
+    if (f_encode) {
+        encode(fin, fout);
+    }
+    else if (f_decode){
+        decode(fin, fout);
+    }
+    else {
+        assert(0 && "not reached");
+    }
 
     fclose(fin);
     fclose(fout);
