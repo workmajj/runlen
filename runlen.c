@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define STR_ENCODE "encode"
-#define STR_DECODE "decode"
+#define ENCODE "encode"
+#define DECODE "decode"
 
 #define ASCII_0 48
 #define ASCII_9 57
@@ -15,9 +15,7 @@
 
 #define BUF_SIZE 8
 
-/* encode */
-
-void rl_encode(FILE *fin, FILE *fout)
+void encode(FILE *fin, FILE *fout)
 {
     assert(fin != NULL);
     assert(fout != NULL);
@@ -50,19 +48,7 @@ void rl_encode(FILE *fin, FILE *fout)
     }
 }
 
-/* decode */
-
-void close_and_exit(FILE *fin, FILE *fout, const char *s)
-{
-    fclose(fin);
-    fclose(fout);
-
-    fprintf(stderr, "%s\n", s);
-
-    exit(1);
-}
-
-void rl_decode(FILE *fin, FILE *fout)
+void decode(FILE *fin, FILE *fout)
 {
     assert(fin != NULL);
     assert(fout != NULL);
@@ -86,7 +72,8 @@ void rl_decode(FILE *fin, FILE *fout)
         }
         else {
             if (buf_idx + 1 == BUF_SIZE) {
-                close_and_exit(fin, fout, "multiplier exceeds buffer");
+                fprintf(stderr, "multiplier exceeds buffer\n");
+                exit(1);
             }
 
             buf[buf_idx] = curr;
@@ -96,49 +83,44 @@ void rl_decode(FILE *fin, FILE *fout)
         last = curr;
     }
 
-    if (isdigit(last)) {
-        close_and_exit(fin, fout, "malformed input ends with number");
-    }
-
     fputc('\n', fout);
+
+    if (isdigit(last)) {
+        fprintf(stderr, "malformed input ends with number\n");
+        exit(1);
+    }
 }
 
-/* main */
-
-int usage(const char *s)
+void usage(const char *s)
 {
-    fprintf(stderr,
-        "usage: %s ["STR_ENCODE"|"STR_DECODE"] <file_in> <file_out>\n", s);
-
-    return 1;
+    fprintf(stderr, "usage: %s ["ENCODE"|"DECODE"] <file_in> <file_out>\n", s);
+    exit(1);
 }
 
 int main(int argc, char *argv[])
 {
-    if (argc != 4) return usage(argv[0]);
+    if (argc != 4) usage(argv[0]);
 
-    bool f_encode = (strncmp(argv[1], STR_ENCODE, strlen(STR_ENCODE)) == 0);
-    bool f_decode = (strncmp(argv[1], STR_DECODE, strlen(STR_DECODE)) == 0);
+    bool f_encode = (strncmp(argv[1], ENCODE, strlen(ENCODE)) == 0);
+    bool f_decode = (strncmp(argv[1], DECODE, strlen(DECODE)) == 0);
 
-    if (!f_encode && !f_decode) return usage(argv[0]);
+    if (!f_encode && !f_decode) usage(argv[0]);
     if (f_encode && f_decode) assert(0 && "not reached");
 
     FILE *fin = fopen(argv[2], "r");
     if (!fin) {
         fprintf(stderr, "error opening file %s for input\n", argv[2]);
-        return 1;
+        exit(1);
     }
 
     FILE *fout = fopen(argv[3], "w");
     if (!fout) {
-        fclose(fin);
-
         fprintf(stderr, "error opening file %s for output\n", argv[3]);
-        return 1;
+        exit(1);
     }
 
-    if (f_encode) rl_encode(fin, fout);
-    else if (f_decode) rl_decode(fin, fout);
+    if (f_encode) encode(fin, fout);
+    else if (f_decode) decode(fin, fout);
     else assert(0 && "not reached");
 
     fclose(fin);
