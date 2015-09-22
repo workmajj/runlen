@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,12 +15,6 @@
 
 #define BUF_SIZE 8
 
-/* util */
-
-bool is_number(char c) { return (c >= ASCII_0 && c <= ASCII_9); }
-
-bool is_letter(char c) { return (c >= ASCII_A && c <= ASCII_Z); }
-
 /* encode */
 
 void rl_encode(FILE *fin, FILE *fout)
@@ -29,14 +24,14 @@ void rl_encode(FILE *fin, FILE *fout)
 
     char curr, last;
 
-    size_t count = 0;
+    int count = 0;
 
     while ((curr = fgetc(fin)) != EOF) {
-        if (!is_letter(curr)) continue;
+        if (!isupper(curr)) continue;
 
         if (count > 0 && curr != last) {
-            if (count == 1) fprintf(fout, "%c", last);
-            else fprintf(fout, "%zu%c", count, last);
+            if (count == 1) fputc(last, fout);
+            else fprintf(fout, "%d%c", count, last);
 
             count = 1;
         }
@@ -48,19 +43,21 @@ void rl_encode(FILE *fin, FILE *fout)
     }
 
     if (count > 0) {
-        if (count == 1) fprintf(fout, "%c\n", last);
-        else fprintf(fout, "%zu%c\n", count, last);
+        if (count == 1) fputc(last, fout);
+        else fprintf(fout, "%d%c", count, last);
+
+        fputc('\n', fout);
     }
 }
 
 /* decode */
 
-void close_and_exit(FILE *fin, FILE *fout, char *s)
+void close_and_exit(FILE *fin, FILE *fout, const char *s)
 {
     fclose(fin);
     fclose(fout);
 
-    printf("%s\n", s);
+    fprintf(stderr, "%s\n", s);
 
     exit(1);
 }
@@ -73,16 +70,16 @@ void rl_decode(FILE *fin, FILE *fout)
     char curr, last;
 
     char buf[BUF_SIZE] = {0};
-    size_t buf_idx = 0;
+    int buf_idx = 0;
 
     while ((curr = fgetc(fin)) != EOF) {
-        if (!is_letter(curr) && !is_number(curr)) continue;
+        if (!isupper(curr) && !isdigit(curr)) continue;
 
-        if (is_letter(curr) && !is_number(last)) {
-            fprintf(fout, "%c", curr);
+        if (isupper(curr) && !isdigit(last)) {
+            fputc(curr, fout);
         }
-        else if (is_letter(curr) && is_number(last)) {
-            for (size_t i = 0; i < atoi(buf); i++) fprintf(fout, "%c", curr);
+        else if (isupper(curr) && isdigit(last)) {
+            for (int i = 0; i < atoi(buf); i++) fputc(curr, fout);
 
             memset(&buf, 0, BUF_SIZE);
             buf_idx = 0;
@@ -99,18 +96,19 @@ void rl_decode(FILE *fin, FILE *fout)
         last = curr;
     }
 
-    if (is_number(last)) {
+    if (isdigit(last)) {
         close_and_exit(fin, fout, "malformed input ends with number");
     }
 
-    fprintf(fout, "\n");
+    fputc('\n', fout);
 }
 
 /* main */
 
-int usage(char *s)
+int usage(const char *s)
 {
-    printf("usage: %s ["STR_ENCODE"|"STR_DECODE"] <file_in> <file_out>\n", s);
+    fprintf(stderr,
+        "usage: %s ["STR_ENCODE"|"STR_DECODE"] <file_in> <file_out>\n", s);
 
     return 1;
 }
@@ -127,7 +125,7 @@ int main(int argc, char *argv[])
 
     FILE *fin = fopen(argv[2], "r");
     if (!fin) {
-        printf("error opening file %s for input\n", argv[2]);
+        fprintf(stderr, "error opening file %s for input\n", argv[2]);
         return 1;
     }
 
@@ -135,7 +133,7 @@ int main(int argc, char *argv[])
     if (!fout) {
         fclose(fin);
 
-        printf("error opening file %s for output\n", argv[3]);
+        fprintf(stderr, "error opening file %s for output\n", argv[3]);
         return 1;
     }
 
