@@ -8,52 +8,49 @@
 #define ENCODE "encode"
 #define DECODE "decode"
 
-#define ASCII_0 48
-#define ASCII_9 57
-#define ASCII_A 65
-#define ASCII_Z 90
+#define BUF_SIZE 8 // to build multiplier strs when decoding
 
-#define BUF_SIZE 8
-
-void encode(FILE *fin, FILE *fout)
+void rl_encode(FILE *fin, FILE *fout)
 {
     assert(fin != NULL);
     assert(fout != NULL);
 
-    char curr, last;
+    char curr = -1;
+    char last = -1;
 
-    int count = 0;
+    int run_len = 0;
 
     while ((curr = fgetc(fin)) != EOF) {
         if (!isupper(curr)) continue;
 
-        if (count > 0 && curr != last) {
-            if (count > 1) fprintf(fout, "%d", count);
-
+        if (run_len > 0 && curr != last) {
+            if (run_len > 1) fprintf(fout, "%d", run_len);
             fputc(last, fout);
-            count = 1;
+
+            run_len = 1;
         }
         else {
-            count++;
+            run_len++;
         }
 
         last = curr;
     }
 
-    if (count > 0) {
-        if (count > 1) fprintf(fout, "%d", count);
-
+    if (run_len > 0) {
+        if (run_len > 1) fprintf(fout, "%d", run_len);
         fputc(last, fout);
-        fputc('\n', fout);
     }
+
+    fputc('\n', fout);
 }
 
-void decode(FILE *fin, FILE *fout)
+void rl_decode(FILE *fin, FILE *fout)
 {
     assert(fin != NULL);
     assert(fout != NULL);
 
-    char curr, last;
+    char curr = -1;
+    char last = -1;
 
     char buf[BUF_SIZE] = {0};
     int buf_idx = 0;
@@ -61,7 +58,7 @@ void decode(FILE *fin, FILE *fout)
     while ((curr = fgetc(fin)) != EOF) {
         if (!isupper(curr) && !isdigit(curr)) continue;
 
-        if (isupper(curr) && !isdigit(last)) {
+        if (isupper(curr) && (isupper(last) || last == -1)) {
             fputc(curr, fout);
         }
         else if (isupper(curr) && isdigit(last)) {
@@ -73,7 +70,7 @@ void decode(FILE *fin, FILE *fout)
             buf_idx = 0;
         }
         else {
-            if (buf_idx + 1 == BUF_SIZE) {
+            if (buf_idx + 1 >= BUF_SIZE) {
                 fprintf(stderr, "multiplier exceeds buffer\n");
                 exit(1);
             }
@@ -96,18 +93,24 @@ void decode(FILE *fin, FILE *fout)
 void usage(const char *s)
 {
     fprintf(stderr, "usage: %s ["ENCODE"|"DECODE"] <file_in> <file_out>\n", s);
-    exit(1);
 }
 
 int main(int argc, char *argv[])
 {
-    if (argc != 4) usage(argv[0]);
+    if (argc != 4) {
+        usage(argv[0]);
+        exit(1);
+    }
 
     bool f_encode = (strncmp(argv[1], ENCODE, strlen(ENCODE)) == 0);
     bool f_decode = (strncmp(argv[1], DECODE, strlen(DECODE)) == 0);
 
-    if (!f_encode && !f_decode) usage(argv[0]);
     if (f_encode && f_decode) assert(0 && "not reached");
+
+    if (!f_encode && !f_decode) {
+        usage(argv[0]);
+        exit(1);
+    }
 
     FILE *fin = fopen(argv[2], "r");
     if (!fin) {
@@ -122,13 +125,10 @@ int main(int argc, char *argv[])
     }
 
     if (f_encode) {
-        encode(fin, fout);
-    }
-    else if (f_decode){
-        decode(fin, fout);
+        rl_encode(fin, fout);
     }
     else {
-        assert(0 && "not reached");
+        rl_decode(fin, fout);
     }
 
     fclose(fin);
