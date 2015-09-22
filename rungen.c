@@ -2,42 +2,40 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define NUM_CHARS 8192
+#define NUM_CHARS 8192 // size of output file
 
 #define ASCII_A 65
 #define ASCII_Z 90
 
-#define RUN_MAX 16
+#define RUN_LEN_MAX 16
 
 int main(int argc, char *argv[])
 {
     if (argc != 2) {
-        printf("usage: %s <file_out>\n", argv[0]);
+        fprintf(stderr, "usage: %s <file_out>\n", argv[0]);
         return 1;
     }
 
     FILE *fp = fopen(argv[1], "w");
     if (!fp) {
-        printf("error opening file %s for output\n", argv[1]);
+        fprintf(stderr, "error opening file %s for output\n", argv[1]);
         return 1;
     }
 
-    // N.B. (rand() % N) isn't great (non-uniform distribution)
+    srandom(time(NULL));
 
-    srand(time(NULL));
-
-    size_t num = 0;
+    int num = 0;
 
     while (num < NUM_CHARS) {
-        char c = ASCII_A + (rand() % (ASCII_Z - ASCII_A + 1));
-        size_t run_len = 1 + (rand() % RUN_MAX);
+        int run_len = 1 + (random() % RUN_LEN_MAX);
+        char c = ASCII_A + (random() % (ASCII_Z - ASCII_A + 1));
 
-        for (size_t i = 0; i < run_len && num < NUM_CHARS; i++, num++) {
-            fprintf(fp, "%c", c);
+        for (int i = 0; i < run_len && num < NUM_CHARS; i++, num++) {
+            fputc(c, fp);
         }
     }
 
-    fprintf(fp, "\n");
+    fputc('\n', fp); // NUM_CHARS + 1
     fclose(fp);
 
     return 0;
