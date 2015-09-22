@@ -79,7 +79,7 @@ void rl_decode(FILE *fin, FILE *fout)
             fputc(curr, fout);
         }
         else if (isupper(curr) && isdigit(last)) {
-            for (int i = 0; i < atoi(buf); i++) fputc(curr, fout);
+            for (int i = 0; i < strtol(buf, NULL, 10); i++) fputc(curr, fout);
 
             memset(&buf, 0, BUF_SIZE);
             buf_idx = 0;
