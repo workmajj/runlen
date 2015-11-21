@@ -1,4 +1,5 @@
+*.d
+*.o
 .DS_Store
-*.dSYM/
 rungen
 runlen
