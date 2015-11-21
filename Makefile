@@ -1,18 +1,10 @@
 CC = clang
-CFLAGS = -Wall -g
+CFLAGS = -MD -Wall -Werror -std=c99
 
-all: clean rungen runlen
-
-rungen:
-	$(CC) $(CFLAGS) -o rungen rungen.c
-
-runlen:
-	$(CC) $(CFLAGS) -o runlen runlen.c
-
-clean:
-	rm -f rungen
-	rm -rf rungen.dSYM
-	rm -f runlen
-	rm -rf runlen.dSYM
+all: rungen runlen
 
 .PHONY: clean
+clean:
+	rm -f rungen
+	rm -f runlen
+	rm -f ./*.o ./*.d
