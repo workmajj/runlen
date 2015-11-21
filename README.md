@@ -22,7 +22,7 @@ Install & Usage
 
 1. In the project directory, build the two programs from source:
 
-        $ make all
+        $ make
 
 2. Next, use `rungen` to create a file of random capital letter runs:
 
